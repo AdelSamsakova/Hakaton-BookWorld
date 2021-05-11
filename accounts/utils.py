@@ -2,7 +2,8 @@ from django.core.mail import send_mail
 
 
 def send_activation_mail(email, activation_code):
-    message = f"""Спасибо за регистрацию. 
+    message = f"""Спасибо за регистрацию на сайте нашего магазина BookWorld.
+    Мы уверены, что вам понравится ассортимент наших книг, и вы найдете именно ту, которую давно хотели прочитать :3 
     Активируйте аккаунт по ссылке: http://127.0.0.1:8000/api/v1/activation/?u={activation_code}"""
     send_mail(
         'Активация аккаунта',

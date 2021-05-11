@@ -3,24 +3,24 @@ from django.db import models
 
 
 class UserManager(BaseUserManager):
-    def _create_user(self, email, password, date_of_birth, **extra_fields):
+    def _create_user(self, email, password, **extra_fields):
         if not email:
             raise ValueError('Email is required')
         email = self.normalize_email(email)
-        user = self.model(email=email, date_of_birth=date_of_birth, **extra_fields)
+        user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create(self, email, password, date_of_birth, **extra_fields):
+    def create(self, email, password, **extra_fields):
         extra_fields.setdefault('is_superuser', False)
-        return self._create_user(email, password, date_of_birth=date_of_birth, **extra_fields)
+        return self._create_user(email, password, **extra_fields)
 
-    def create_superuser(self, email, password, date_of_birth, **extra_fields):
+    def create_superuser(self, email, password, **extra_fields):
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('is_active', True)
         extra_fields.setdefault('is_staff', True)
-        return self._create_user(email, password, date_of_birth, **extra_fields)
+        return self._create_user(email, password, **extra_fields)
 
 
 class User(AbstractBaseUser):
@@ -28,7 +28,7 @@ class User(AbstractBaseUser):
     is_active = models.BooleanField(default=False)
     name = models.CharField(max_length=50, blank=True)
     last_name = models.CharField(max_length=50, blank=True)
-    date_of_birth = models.DateField()
+    date_of_birth = models.DateField(null=True, blank=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     activation_code = models.CharField(max_length=8, blank=True)

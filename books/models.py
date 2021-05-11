@@ -38,7 +38,7 @@ class Book(models.Model):
     slug = models.SlugField(max_length=100, primary_key=True)
     author = models.CharField(max_length=200)
     genre = models.ForeignKey(Genres, on_delete=models.CASCADE, related_name='books')
-    format = models.ManyToManyField(Format)
+    format = models.ManyToManyField(Format, through='ExtraTableForPrice')
     cover = models.ImageField(upload_to='books_cover/')
     description = models.TextField()
 
@@ -47,6 +47,12 @@ class Book(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class ExtraTableForPrice(models.Model):
+    books = models.ForeignKey(Book, on_delete=models.CASCADE)
+    formats = models.ForeignKey(Format, on_delete=models.CASCADE)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
 
 
 class Review(models.Model):
