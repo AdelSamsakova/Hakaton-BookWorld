@@ -1,11 +1,14 @@
-from rest_framework.decorators import api_view
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
+from rest_framework.decorators import api_view, action
 from rest_framework.generics import ListAPIView, CreateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
+from rest_framework.viewsets import ModelViewSet
 
-from books.models import Genres, Format, Book, Review
-from books.serializers import GenresSerializer, FormatSerializer, BookListSerializer, ReviewSerializer
+from books.models import Genres, Format, Book, Review, Order
+from books.serializers import GenresSerializer, FormatSerializer, BookListSerializer, ReviewSerializer, BookSerializer
 
 
 class GenresListView(ListAPIView):
@@ -21,6 +24,44 @@ class FormatListView(ListAPIView):
 class BookListView(ListAPIView):
     queryset = Book.objects.all()
     serializer_class = BookListSerializer
+
+
+class BookViewSet(ModelViewSet):
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+    lookup_url_kwarg = 'slug'
+    filter_backends = [DjangoFilterBackend,
+                       filters.SearchFilter,
+                       filters.OrderingFilter]
+    filterset_fields = ['format__slug', 'genre', 'author']
+    search_fields = ['title', 'author', 'genre__title', 'description']
+    ordering_fields = ['title', ]
+
+    @action(['GET'], detail=True)
+    def review(self, request, slug=None):
+        book = self.get_object()
+        reviews = book.reviews.all()
+        serializer = ReviewSerializer(reviews, many=True)
+        return Response(serializer.data)
+
+    @action(['POST'], detail=True)
+    def order(self, request, slug=None):
+        book = self.get_object()
+        user = request.user
+        try:
+            order = Order.objects.get(book=book, user=user)
+            order.is_ordered = not order.is_ordered
+            order.save()
+            message = 'Вы заказали книгу' if order.is_ordered else 'Вы отменили заказ'
+        except Order.DoesNotExist:
+            Order.objects.create(book=book, user=user, is_ordered=True)
+            message = 'Вы заказали книгу'
+        return Response(message, status=200)
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return BookListSerializer
+        return self.serializer_class
 
 
 @api_view(['GET'])
