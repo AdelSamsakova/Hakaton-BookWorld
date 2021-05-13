@@ -17,7 +17,8 @@ class RegistrationView(APIView):
         serializer = UserSerializer(data=data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            return Response('Пользователь успешно зарегистрирован', status=201)
+            return Response("""Пользователь успешно зарегистрирован. 
+            Для активации аккаунта перейдите по ссылке, которую мы отправили вам на почту""", status=201)
 
 
 class ActivationView(APIView):

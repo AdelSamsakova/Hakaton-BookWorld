@@ -8,6 +8,7 @@ from rest_framework.reverse import reverse
 from rest_framework.viewsets import ModelViewSet
 
 from books.models import Genres, Format, Book, Review, Order
+from books.permission import IsAdminPermission
 from books.serializers import GenresSerializer, FormatSerializer, BookListSerializer, ReviewSerializer, BookSerializer
 
 
@@ -46,6 +47,7 @@ class BookViewSet(ModelViewSet):
 
     @action(['POST'], detail=True)
     def order(self, request, slug=None):
+        print(request)
         book = self.get_object()
         user = request.user
         try:
@@ -62,6 +64,15 @@ class BookViewSet(ModelViewSet):
         if self.action == 'list':
             return BookListSerializer
         return self.serializer_class
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            permissions = [IsAdminPermission]
+        elif self.action == 'like':
+            permissions = [IsAuthenticated]
+        else:
+            permissions = []
+        return [perm() for perm in permissions]
 
 
 @api_view(['GET'])

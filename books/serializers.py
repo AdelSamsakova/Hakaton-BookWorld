@@ -20,10 +20,6 @@ class FormatSerializer(serializers.ModelSerializer):
         model = Format
         fields = ('title', )
 
-    # def to_representation(self, instance):
-    #     representation = super().to_representation(instance)
-    #     representation['price'] = PriceSerializer(instance.formats, context=self.context).data
-
 
 class BookSerializer(serializers.ModelSerializer):
     class Meta:
@@ -32,10 +28,9 @@ class BookSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         request = self.context.get('request')
-        user = request.user
         formats = validated_data.pop('format', [])
-        book = Book.objects.create(author=user, **validated_data)
-        book.formats.add(*formats)
+        book = Book.objects.create(**validated_data)
+        book.format.add(*formats)
         return book
 
     def get_fields(self):
@@ -47,9 +42,7 @@ class BookSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        print(representation)
         representation['genre'] = GenresSerializer(instance.genre, context=self.context).data
-        # representation['format'] = FormatSerializer(instance.format.all(), many=True, context=self.context).data
         representation['reviews'] = ReviewSerializer(instance.reviews.all(), many=True).data
         representation['orders_count'] = instance.orders.count()
         representation['price'] = PriceSerializer(instance.books_price.all(), many=True).data
@@ -69,7 +62,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-        fields = '__all__'
+        fields = ('user', 'book', 'text', 'rating', 'created_time')
 
     def validate_rating(self, rating):
         if rating not in range(1, 6):
