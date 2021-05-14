@@ -27,18 +27,10 @@ class BookSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def create(self, validated_data):
-        request = self.context.get('request')
         formats = validated_data.pop('format', [])
         book = Book.objects.create(**validated_data)
         book.format.add(*formats)
         return book
-
-    def get_fields(self):
-        action = self.context.get('action')
-        fields = super().get_fields()
-        if action == 'create':
-            fields.pop('slug')
-        return fields
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
